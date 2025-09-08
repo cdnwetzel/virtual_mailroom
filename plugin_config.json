@@ -1,0 +1,54 @@
+{
+  "name": "Virtual Mailroom",
+  "version": "1.0.0",
+  "description": "Intelligent PDF processing and document routing system with AI-powered analysis",
+  "author": "ChatPS Team",
+  "icon": "📬",
+  "tab_order": 10,
+  "enabled": true,
+  "entry_point": "mailroom_plugin.py",
+  "plugin_class": "VirtualMailroomPlugin",
+  "main_function": "render_mailroom_tab",
+  "dependencies": [
+    "PyPDF2",
+    "pdfplumber",
+    "streamlit",
+    "pandas",
+    "plotly"
+  ],
+  "settings": {
+    "default_output_dir": "output",
+    "enable_ai": true,
+    "chatps_env": "nextgen",
+    "max_file_size_mb": 100,
+    "allowed_extensions": ["pdf"],
+    "enable_drag_drop": true,
+    "show_document_types": true,
+    "batch_processing": true,
+    "auto_detect_boundaries": true,
+    "default_pages_per_doc": 0,
+    "document_types": [
+      "Auto-Detect",
+      "REGF",
+      "AFF", 
+      "ICD",
+      "NOTICE",
+      "SUMMONS",
+      "MOTION",
+      "JUDGMENT",
+      "DISCOVERY",
+      "SETTLEMENT",
+      "OTHER"
+    ]
+  },
+  "permissions": {
+    "file_system": true,
+    "network": true,
+    "gpu": false
+  },
+  "ui_config": {
+    "layout": "wide",
+    "show_sidebar": true,
+    "theme": "default"
+  }
+}
