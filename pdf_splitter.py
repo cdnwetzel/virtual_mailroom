@@ -87,7 +87,10 @@ class PDFSplitter:
         """Detect document type from content"""
         text_lower = text.lower()
         
-        if any(term in text_lower for term in ['registration', 'register', 'filing']):
+        # Check for Information Subpoena first (most specific)
+        if 'information subpoena with restraining notice' in text_lower:
+            return "IS"
+        elif any(term in text_lower for term in ['registration', 'register', 'filing']):
             return "REGF"
         elif any(term in text_lower for term in ['affidavit', 'sworn', 'notarized']):
             return "AFF"
@@ -260,7 +263,7 @@ class PDFSplitter:
             print(f"  {doc_type}: {count}")
         
         print("\nJurisdictions:")
-        for jurisdiction, count in sorted(jurisdictions.items()):
+        for jurisdiction, count in sorted(jurisdictions.items(), key=lambda x: x[0] or 'ZZZ_Unknown'):
             print(f"  {jurisdiction or 'Unknown'}: {count}")
         
         print("\nProcessed Files:")
