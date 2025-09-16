@@ -26,6 +26,8 @@ if str(current_dir) not in sys.path:
 
 # Import mailroom components
 from pdf_splitter import PDFSplitter
+from infosub_processor import InfoSubProcessor
+from document_detector import DocumentTypeDetector
 from mailroom_chatps_integration import (
     EnhancedVirtualMailroom,
     ChatPSEnvironment,
@@ -216,14 +218,31 @@ class VirtualMailroomPlugin(ChatPSPlugin):
                 temp_path.write_bytes(uploaded_file.getvalue())
                 
                 try:
-                    # Process with PDF splitter
-                    splitter = PDFSplitter(output_dir=str(output_dir))
-                    results = splitter.split_pdf(
-                        str(temp_path),
-                        doc_type=doc_type,
-                        pages_per_doc=pages_per_doc if pages_per_doc > 0 else None,
-                        auto_detect=auto_detect
-                    )
+                    # Auto-detect document type if needed
+                    actual_doc_type = doc_type
+                    if doc_type is None:  # Auto-Detect selected
+                        detector = DocumentTypeDetector()
+                        detected_type = detector.quick_detect(str(temp_path))
+                        if detected_type == "IS":
+                            actual_doc_type = "IS"
+                        elif detected_type == "LTD":
+                            actual_doc_type = None  # Use standard splitter
+                        st.info(f"Auto-detected document type: {detected_type}")
+                    
+                    # Choose processor based on document type
+                    if actual_doc_type == "IS":
+                        # Use InfoSub processor for Information Subpoenas
+                        processor = InfoSubProcessor(output_dir=str(output_dir))
+                        results = processor.process_pdf(str(temp_path))
+                    else:
+                        # Use standard PDF splitter for LTD and other types
+                        splitter = PDFSplitter(output_dir=str(output_dir))
+                        results = splitter.split_pdf(
+                            str(temp_path),
+                            doc_type=actual_doc_type,
+                            pages_per_doc=pages_per_doc if pages_per_doc > 0 else None,
+                            auto_detect=auto_detect
+                        )
                     
                     # Enhance with AI if enabled
                     if use_ai and st.session_state.mailroom_instance:

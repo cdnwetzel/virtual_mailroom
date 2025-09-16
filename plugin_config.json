@@ -30,6 +30,7 @@
     "document_types": [
       "Auto-Detect",
       "REGF",
+      "IS",
       "AFF", 
       "ICD",
       "NOTICE",

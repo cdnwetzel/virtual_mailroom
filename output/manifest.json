@@ -1,0 +1,17 @@
+{
+  "processed_at": "2025-09-16T16:31:05.953764",
+  "total_documents": 1,
+  "documents": [
+    {
+      "file_number": "UNKNOWN_001",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_001.pdf",
+      "pages": "1-28",
+      "page_count": 28,
+      "timestamp": "2025-09-16T16:31:05.953390"
+    }
+  ]
+}

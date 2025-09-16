@@ -30,20 +30,30 @@ class InfoSubProcessor:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.processed_documents = []
         
-        # Document boundary markers
+        # Document boundary markers (flexible patterns to handle line breaks and OCR variations)
         self.start_markers = [
             "INFORMATION SUBPOENA WITH RESTRAINING NOTICE",
-            "information subpoena with restraining notice"
+            "information subpoena with restraining notice",
+            "INFORMATION SUBPOENA WITH",  # Partial match for line break cases
+            "information subpoena with"
         ]
         
-        # File number patterns for IS documents
-        # Index No. is the primary identifier in IS documents
+        # File number patterns for IS documents (FIRM FILE NUMBERS ONLY - NOT INDEX NUMBERS)
+        # Only match actual firm file numbers, not court case index numbers
+        # Enhanced to include letter-prefixed patterns found in analysis
         self.file_patterns = [
-            r'Index\s+No[.]?\s*([A-Z0-9\-]+\d+)',  # Index No. CEC 12-0006895
-            r'File\s+No[.:]?\s*([A-Z]?\d{7,8})',
-            r'File\s+Number[.:]?\s*([A-Z]?\d{7,8})',
-            r'Our\s+File\s+No[.:]?\s*([A-Z]?\d{7,8})',
-            r'Case\s+No[.:]?\s*([A-Z0-9\-]+\d+)'
+            r'Firm\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Firm File No. - conclusive IS pattern
+            r'File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # File No. with 0-2 letter prefix
+            r'File\s+Number[.:]?\s*([A-Z]{0,2}\d{6,8})',  # File Number
+            r'Our\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Our File No
+            r'Attorney\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Attorney File No
+            r'Client\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Client File No
+            # Account Number patterns found in analysis (L prefix examples)
+            r'Account\s+Number[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Account Number
+            r'Account\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Account No
+            # More flexible patterns for various formats
+            r'(?:Firm|File|Our|Attorney|Client)\s+(?:File\s+)?No[.:]?\s*([A-Z]{0,2}\d{6,8})',
+            r'(?:File|Firm)\s*#\s*([A-Z]{0,2}\d{6,8})',  # File # format
         ]
         
         # Additional document types that are part of the same subpoena
@@ -63,10 +73,13 @@ class InfoSubProcessor:
         Returns:
             File number or None if not found
         """
-        # First try to find File No.
+        # First try to find File No. - proper 6-8 digit file numbers
         file_patterns = [
-            r'File\s+No[.]?\s*([A-Z0-9]+)',
-            r'Our\s+File\s+No[.]?\s*([A-Z0-9]+)',
+            r'Firm\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Firm File No
+            r'File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # File No
+            r'Our\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Our File No
+            r'Attorney\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Attorney File No
+            r'Client\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Client File No
         ]
 
         for pattern in file_patterns:
@@ -75,24 +88,11 @@ class InfoSubProcessor:
                 file_number = match.group(1).strip().upper()
                 file_number = re.sub(r'[^A-Z0-9]', '', file_number)
                 file_number = self._apply_ocr_corrections(file_number)
-                if len(file_number) >= 6:
+                if len(file_number) >= 6:  # Proper file number length requirement
                     return file_number
 
-        # If no File No., use Index No. as identifier
-        index_patterns = [
-            r'Index\s+No[.]?\s*([A-Z0-9\-/]+)',
-            r'Case\s+No[.]?\s*([A-Z0-9\-/]+)',
-        ]
-
-        for pattern in index_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                index_no = match.group(1).strip().upper()
-                # Keep hyphens and slashes for Index numbers
-                index_no = re.sub(r'[^A-Z0-9\-/]', '', index_no)
-                if len(index_no) >= 6:
-                    return index_no
-
+        # Do NOT fall back to Index numbers - only return actual firm file numbers
+        # If no firm file number found, return None (document should be marked incomplete)
         return None
 
     def extract_index_number(self, text: str) -> Optional[str]:
@@ -389,28 +389,45 @@ class InfoSubProcessor:
                         current_file_number = file_number
                         logger.info(f"Found file number via OCR: {file_number}")
 
-            # Look for file number (typically on signature page - page 7 of document)
+            # Look for file number on current page if we're in a document
             elif current_start is not None and current_file_number is None:
-                # Check multiple pages for file number (pages 2, 6, 7 of document)
-                pages_to_check = [current_start + 1, current_start + 5, current_start + 6]
+                # Check current page for file number
+                if not text and is_scanned:
+                    # Need to OCR this page for file number
+                    logger.debug(f"OCR scanning page {page_num + 1} for file number")
+                    text = self._extract_text_with_ocr(pdf_path, page_num, quick_mode=False)
+                    pages_text[page_num] = text
 
-                for check_page in pages_to_check:
-                    if check_page == page_num and check_page < len(pages_text):
-                        if not text and is_scanned:
-                            # Need to OCR this page for file number
-                            logger.debug(f"OCR scanning page {page_num + 1} for file number")
-                            text = self._extract_text_with_ocr(pdf_path, page_num, quick_mode=False)
-                            pages_text[page_num] = text
+                file_number = self.extract_file_number(text)
+                if file_number:
+                    current_file_number = file_number
+                    logger.info(f"Found file number on page {page_num + 1}: {file_number}")
 
-                        file_number = self.extract_file_number(text)
-                        if file_number:
-                            current_file_number = file_number
-                            logger.info(f"Found file number: {file_number}")
-                            break
-        
         # Close the last document
         if current_start is not None:
             boundaries.append((current_start, len(pages_text) - 1, current_file_number, current_index_number))
+
+        # After processing all pages, scan all documents for missing file numbers
+        logger.info("Performing comprehensive file number scan across all pages...")
+        for i, (start, end, file_num, index_num) in enumerate(boundaries):
+            if file_num is None:
+                logger.info(f"Scanning all pages of document {i+1} (pages {start+1}-{end+1}) for file number")
+                for scan_page in range(start, end + 1):
+                    # Get or extract text for this page
+                    scan_text = pages_text[scan_page] if scan_page < len(pages_text) and pages_text[scan_page] else ""
+
+                    # If no text and this is a scanned doc, OCR this page
+                    if not scan_text and is_scanned and scan_page < len(pages_text):
+                        logger.debug(f"OCR scanning page {scan_page + 1} for comprehensive file number search")
+                        scan_text = self._extract_text_with_ocr(pdf_path, scan_page, quick_mode=False)
+                        pages_text[scan_page] = scan_text
+
+                    # Check for file number in this page
+                    found_file_number = self.extract_file_number(scan_text)
+                    if found_file_number:
+                        boundaries[i] = (start, end, found_file_number, index_num)
+                        logger.info(f"Found file number on page {scan_page + 1}: {found_file_number}")
+                        break
         
         # Filter out documents that are too short (likely errors)
         valid_boundaries = []
@@ -487,7 +504,9 @@ class InfoSubProcessor:
 
             # Use file number or mark as incomplete
             if file_number and is_complete:
-                output_filename = f"{file_number}_IS.pdf"
+                # Sanitize file number for filename (replace / with _)
+                safe_file_number = file_number.replace('/', '_').replace('\\', '_')
+                output_filename = f"{safe_file_number}_IS.pdf"
                 output_subdir = self.output_dir
             else:
                 # Document is incomplete (missing signature page with File No.)
