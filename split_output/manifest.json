@@ -1,0 +1,43 @@
+{
+  "processing_date": "2025-09-19T15:19:01.117484",
+  "input_file": "temp_20250919_144944_NY_INFO_SUBS_9.19.2025.pdf",
+  "total_pages": 32,
+  "pages_per_document": 8,
+  "total_documents": 4,
+  "complete_documents": 4,
+  "incomplete_documents": 0,
+  "documents": [
+    {
+      "document": 1,
+      "filename": "J2401735_IS.pdf",
+      "file_number": "J2401735",
+      "pages": "1-8",
+      "page_count": 8,
+      "status": "complete"
+    },
+    {
+      "document": 2,
+      "filename": "J2401107_IS.pdf",
+      "file_number": "J2401107",
+      "pages": "9-16",
+      "page_count": 8,
+      "status": "complete"
+    },
+    {
+      "document": 3,
+      "filename": "J2401735_IS_02.pdf",
+      "file_number": "J2401735",
+      "pages": "17-24",
+      "page_count": 8,
+      "status": "complete"
+    },
+    {
+      "document": 4,
+      "filename": "J2401107_IS_02.pdf",
+      "file_number": "J2401107",
+      "pages": "25-32",
+      "page_count": 8,
+      "status": "complete"
+    }
+  ]
+}

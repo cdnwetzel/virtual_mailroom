@@ -8,7 +8,7 @@ import re
 import os
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
 import pdfplumber
 from PyPDF2 import PdfReader, PdfWriter
@@ -30,32 +30,24 @@ class InfoSubProcessor:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.processed_documents = []
         
-        # Document boundary markers (flexible patterns to handle line breaks and OCR variations)
+        # Document boundary markers
         self.start_markers = [
             "INFORMATION SUBPOENA WITH RESTRAINING NOTICE",
             "information subpoena with restraining notice",
-            "INFORMATION SUBPOENA WITH",  # Partial match for line break cases
+            "INFORMATION SUBPOENA WITH",  # Partial match for line break
             "information subpoena with",
             "INFORMATION SUBPOENA",  # Even more flexible
             "information subpoena"
         ]
         
-        # File number patterns for IS documents (FIRM FILE NUMBERS ONLY - NOT INDEX NUMBERS)
-        # Only match actual firm file numbers, not court case index numbers
-        # Enhanced to include letter-prefixed patterns found in analysis
+        # File number patterns for IS documents
+        # Index No. is the primary identifier in IS documents
         self.file_patterns = [
-            r'Firm\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Firm File No. - conclusive IS pattern
-            r'File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # File No. with 0-2 letter prefix
-            r'File\s+Number[.:]?\s*([A-Z]{0,2}\d{6,8})',  # File Number
-            r'Our\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Our File No
-            r'Attorney\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Attorney File No
-            r'Client\s+File\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Client File No
-            # Account Number patterns found in analysis (L prefix examples)
-            r'Account\s+Number[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Account Number
-            r'Account\s+No[.:]?\s*([A-Z]{0,2}\d{6,8})',  # Account No
-            # More flexible patterns for various formats
-            r'(?:Firm|File|Our|Attorney|Client)\s+(?:File\s+)?No[.:]?\s*([A-Z]{0,2}\d{6,8})',
-            r'(?:File|Firm)\s*#\s*([A-Z]{0,2}\d{6,8})',  # File # format
+            r'Index\s+No[.]?\s*([A-Z0-9\-]+\d+)',  # Index No. CEC 12-0006895
+            r'File\s+No[.:]?\s*([A-Z]?\d{7,8})',
+            r'File\s+Number[.:]?\s*([A-Z]?\d{7,8})',
+            r'Our\s+File\s+No[.:]?\s*([A-Z]?\d{7,8})',
+            r'Case\s+No[.:]?\s*([A-Z0-9\-]+\d+)'
         ]
         
         # Additional document types that are part of the same subpoena
@@ -75,13 +67,10 @@ class InfoSubProcessor:
         Returns:
             File number or None if not found
         """
-        # First try to find File No. - proper 6-8 digit file numbers
+        # First try to find File No.
         file_patterns = [
-            r'Firm\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Firm File No
-            r'File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # File No
-            r'Our\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Our File No
-            r'Attorney\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Attorney File No
-            r'Client\s+File\s+No[.:]?\s*([A-Z]?\d{6,8})',  # Client File No
+            r'File\s+No[.]?\s*([A-Z0-9]+)',
+            r'Our\s+File\s+No[.]?\s*([A-Z0-9]+)',
         ]
 
         for pattern in file_patterns:
@@ -90,11 +79,24 @@ class InfoSubProcessor:
                 file_number = match.group(1).strip().upper()
                 file_number = re.sub(r'[^A-Z0-9]', '', file_number)
                 file_number = self._apply_ocr_corrections(file_number)
-                if len(file_number) >= 6:  # Proper file number length requirement
+                if len(file_number) >= 6:
                     return file_number
 
-        # Do NOT fall back to Index numbers - only return actual firm file numbers
-        # If no firm file number found, return None (document should be marked incomplete)
+        # If no File No., use Index No. as identifier
+        index_patterns = [
+            r'Index\s+No[.]?\s*([A-Z0-9\-/]+)',
+            r'Case\s+No[.]?\s*([A-Z0-9\-/]+)',
+        ]
+
+        for pattern in index_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                index_no = match.group(1).strip().upper()
+                # Keep hyphens and slashes for Index numbers
+                index_no = re.sub(r'[^A-Z0-9\-/]', '', index_no)
+                if len(index_no) >= 6:
+                    return index_no
+
         return None
 
     def extract_index_number(self, text: str) -> Optional[str]:
@@ -160,17 +162,21 @@ class InfoSubProcessor:
     def is_document_start(self, text: str) -> bool:
         """
         Check if page contains document start marker
-        
+
         Args:
             text: Page text content
-            
+
         Returns:
             True if page starts a new document
         """
         text_clean = text.strip().upper()
+        # Debug logging
+        logger.debug(f"Checking for start markers in text (first 100 chars): {text_clean[:100]}")
         for marker in self.start_markers:
             if marker.upper() in text_clean:
+                logger.debug(f"✅ Found marker: {marker}")
                 return True
+        logger.debug(f"❌ No markers found in text")
         return False
     
     def is_blank_page(self, text: str) -> bool:
@@ -348,6 +354,9 @@ class InfoSubProcessor:
                 logger.debug(f"Skipping blank page {page_num + 1}")
                 continue
 
+            # Log page processing
+            logger.debug(f"Processing page {page_num + 1}, text length: {len(text)}")
+
             # For scanned docs with empty text, do full OCR if needed
             if is_scanned and not text and current_start is not None:
                 # We're in a document, need to check this page
@@ -370,16 +379,23 @@ class InfoSubProcessor:
                 logger.info(f"Found new subpoena starting at page {page_num + 1} (Index: {page_index})")
 
             # Check if this page starts a new document (by marker)
-            elif self.is_document_start(text):
-                # If we have a current document, close it
-                if current_start is not None:
-                    boundaries.append((current_start, page_num - 1, current_file_number, current_index_number))
+            # IS documents are typically 7-8 pages, so don't create new boundary too soon
+            if self.is_document_start(text):
+                # Only create new boundary if we're at least 6 pages from last start
+                if current_start is None or (page_num - current_start) >= 6:
+                    logger.debug(f"Page {page_num + 1} detected as document start")
+                    # If we have a current document, close it
+                    if current_start is not None:
+                        boundaries.append((current_start, page_num - 1, current_file_number, current_index_number))
+                        logger.info(f"Closing previous subpoena (pages {current_start + 1}-{page_num})")
 
-                # Start new document
-                current_start = page_num
-                current_file_number = None
-                current_index_number = page_index
-                logger.info(f"Found new subpoena starting at page {page_num + 1}")
+                    # Start new document
+                    current_start = page_num
+                    current_file_number = None
+                    current_index_number = page_index
+                    logger.info(f"Found new subpoena starting at page {page_num + 1}")
+                else:
+                    logger.debug(f"Page {page_num + 1} has IS marker but too close to start (only {page_num - current_start} pages)")
 
                 # For scanned docs, OCR the next page (page 2) for file number
                 if is_scanned and page_num + 1 < len(pages_text):
@@ -391,45 +407,28 @@ class InfoSubProcessor:
                         current_file_number = file_number
                         logger.info(f"Found file number via OCR: {file_number}")
 
-            # Look for file number on current page if we're in a document
+            # Look for file number (typically on signature page - page 7 of document)
             elif current_start is not None and current_file_number is None:
-                # Check current page for file number
-                if not text and is_scanned:
-                    # Need to OCR this page for file number
-                    logger.debug(f"OCR scanning page {page_num + 1} for file number")
-                    text = self._extract_text_with_ocr(pdf_path, page_num, quick_mode=False)
-                    pages_text[page_num] = text
+                # Check multiple pages for file number (pages 2, 6, 7 of document)
+                pages_to_check = [current_start + 1, current_start + 5, current_start + 6]
 
-                file_number = self.extract_file_number(text)
-                if file_number:
-                    current_file_number = file_number
-                    logger.info(f"Found file number on page {page_num + 1}: {file_number}")
+                for check_page in pages_to_check:
+                    if check_page == page_num and check_page < len(pages_text):
+                        if not text and is_scanned:
+                            # Need to OCR this page for file number
+                            logger.debug(f"OCR scanning page {page_num + 1} for file number")
+                            text = self._extract_text_with_ocr(pdf_path, page_num, quick_mode=False)
+                            pages_text[page_num] = text
 
+                        file_number = self.extract_file_number(text)
+                        if file_number:
+                            current_file_number = file_number
+                            logger.info(f"Found file number: {file_number}")
+                            break
+        
         # Close the last document
         if current_start is not None:
             boundaries.append((current_start, len(pages_text) - 1, current_file_number, current_index_number))
-
-        # After processing all pages, scan all documents for missing file numbers
-        logger.info("Performing comprehensive file number scan across all pages...")
-        for i, (start, end, file_num, index_num) in enumerate(boundaries):
-            if file_num is None:
-                logger.info(f"Scanning all pages of document {i+1} (pages {start+1}-{end+1}) for file number")
-                for scan_page in range(start, end + 1):
-                    # Get or extract text for this page
-                    scan_text = pages_text[scan_page] if scan_page < len(pages_text) and pages_text[scan_page] else ""
-
-                    # If no text and this is a scanned doc, OCR this page
-                    if not scan_text and is_scanned and scan_page < len(pages_text):
-                        logger.debug(f"OCR scanning page {scan_page + 1} for comprehensive file number search")
-                        scan_text = self._extract_text_with_ocr(pdf_path, scan_page, quick_mode=False)
-                        pages_text[scan_page] = scan_text
-
-                    # Check for file number in this page
-                    found_file_number = self.extract_file_number(scan_text)
-                    if found_file_number:
-                        boundaries[i] = (start, end, found_file_number, index_num)
-                        logger.info(f"Found file number on page {scan_page + 1}: {found_file_number}")
-                        break
         
         # Filter out documents that are too short (likely errors)
         valid_boundaries = []
@@ -506,7 +505,6 @@ class InfoSubProcessor:
 
         for doc_idx, boundary_data in enumerate(boundaries):
             try:
-                # Unpack boundary data
                 start_page, end_page, file_number, index_number = boundary_data
                 logger.info(f"Processing document {doc_idx + 1}: pages {start_page + 1}-{end_page + 1}")
 
@@ -515,9 +513,7 @@ class InfoSubProcessor:
 
                 # Use file number or mark as incomplete
                 if file_number and is_complete:
-                    # Sanitize file number for filename (replace / with _)
-                    safe_file_number = file_number.replace('/', '_').replace('\\', '_')
-                    output_filename = f"{safe_file_number}_IS.pdf"
+                    output_filename = f"{file_number}_IS.pdf"
                     output_subdir = self.output_dir
                 else:
                     # Document is incomplete (missing signature page with File No.)
@@ -646,7 +642,63 @@ class InfoSubProcessor:
         
         logger.info(f"Manifest saved: {manifest_path}")
         return str(manifest_path)
-    
+
+    def create_zip_archive(self, results: Any) -> Optional[bytes]:
+        """
+        Create ZIP archive of processed IS documents
+
+        Args:
+            results: Processing results (can be list or dict with 'documents' key)
+
+        Returns:
+            ZIP file as bytes or None if error
+        """
+        import zipfile
+        import io
+
+        # Handle different result formats
+        if isinstance(results, dict) and 'documents' in results:
+            documents = results['documents']
+        elif isinstance(results, list):
+            documents = results
+        else:
+            logger.warning("No documents to archive")
+            return None
+
+        try:
+            zip_buffer = io.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                # Add processed documents
+                for doc in documents:
+                    if isinstance(doc, dict) and 'output_file' in doc:
+                        file_path = self.output_dir / doc['output_file']
+                        if file_path.exists():
+                            zip_file.write(file_path, doc['output_file'])
+
+                # Add incomplete documents
+                incomplete_dir = self.output_dir / "incomplete"
+                if incomplete_dir.exists():
+                    for file_path in incomplete_dir.glob("*.pdf"):
+                        zip_file.write(file_path, f"incomplete/{file_path.name}")
+
+                    # Add incomplete log
+                    log_file = incomplete_dir / "incomplete_documents.txt"
+                    if log_file.exists():
+                        zip_file.write(log_file, "incomplete/incomplete_documents.txt")
+
+                # Add manifest
+                manifest_file = self.output_dir / "infosub_manifest.json"
+                if manifest_file.exists():
+                    zip_file.write(manifest_file, "infosub_manifest.json")
+
+            zip_buffer.seek(0)
+            return zip_buffer.getvalue()
+
+        except Exception as e:
+            logger.error(f"Failed to create ZIP archive: {e}")
+            return None
+
     def print_summary(self):
         """Print processing summary"""
         print("\n" + "="*70)

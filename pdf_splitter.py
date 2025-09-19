@@ -83,10 +83,16 @@ class PDFSplitter:
                     return address
         return None
     
-    def detect_document_type(self, text: str) -> str:
-        """Detect document type from content"""
+    def detect_document_type(self, text: str, filename: Optional[str] = None) -> str:
+        """Detect document type from content and filename"""
         text_lower = text.lower()
-        
+
+        # Check filename patterns first for specific types
+        if filename:
+            filename_upper = filename.upper()
+            if 'REG_F_SCAN' in filename_upper:
+                return "LTD"
+
         # Check for Information Subpoena first (most specific)
         if 'information subpoena with restraining notice' in text_lower:
             return "IS"
@@ -183,7 +189,7 @@ class PDFSplitter:
             if doc_type:
                 document_type = doc_type
             elif auto_detect:
-                document_type = self.detect_document_type(all_pages_text)
+                document_type = self.detect_document_type(all_pages_text, input_path.name)
             else:
                 document_type = "REGF"
             

@@ -1,13 +1,61 @@
 # Virtual Mailroom - Current State Checkpoint
 
-## Date: 2025-09-16 (Updated)
+## Date: 2025-09-19 (Updated)
 
-## Project Status: ✅ PATTERN ENHANCEMENT & OCR TRAINING COMPLETE
+## Project Status: 🔧 IS DOCUMENT PROCESSING - CLI WORKS, GUI DEBUGGING
 
 ## Summary
-**BREAKTHROUGH SESSION:** Fixed critical OCR pattern recognition issue that was causing 93% of Information Subpoena documents to be misclassified as incomplete. Enhanced file number detection patterns and created comprehensive OCR training dataset.
+**Current Session Focus:** Information Subpoena (IS) document processing. Successfully created CLI tools for splitting 32-page IS documents into 4 separate 8-page documents. GUI still showing "Unknown error" despite multiple fixes - requires further debugging.
 
-## 🎯 Major Accomplishments Today (2025-09-16)
+## 🎯 Today's Accomplishments (2025-09-19)
+
+### ✅ CLI Processing Success
+- Created `split_is_cli.py` for manual IS document splitting
+- Successfully processes NY_INFO_SUBS_9.19.2025.pdf (32 pages → 4 documents)
+- Correctly extracts file numbers: J2401735 and J2401107
+- Handles duplicate filenames with suffix system (_02)
+- Output location: `/home/psadmin/ai/virtual_mailroom/split_output/complete/`
+
+### 🔧 Code Fixes Applied
+1. **Type Annotation Fix**: Changed `List[Tuple[int, int, str]]` to `List[Tuple[int, int, str, str]]`
+2. **Import Fix**: Added `Any` to typing imports
+3. **Field Reference Fix**: Changed `token` to `file_number` in plugin.py
+4. **Boundary Detection**: Improved with 6-page minimum between IS documents
+5. **ZIP Archive**: Added `create_zip_archive` method to InfoSubProcessor
+6. **Error Logging**: Enhanced with full traceback capture
+
+### 🔍 Document Analysis
+- Identified structure: 4 IS documents @ 8 pages each
+- File numbers found on pages: 3, 11, 19, 27
+- Issue: "INFORMATION SUBPOENA" appears multiple times per document
+- Solution: Implemented minimum page gap requirement
+
+### ❌ Outstanding GUI Issue
+- Streamlit GUI still shows "Unknown error"
+- CLI tools work perfectly
+- Possible causes:
+  - Module caching in Streamlit
+  - Import path differences
+  - SELinux/permission issues
+  - Error propagation in middleware
+
+### 📁 New Tools Created
+```
+/home/psadmin/ai/virtual_mailroom/
+├── split_is_cli.py           # ✅ Working CLI splitter
+├── is_fixed_split.py         # Fixed 7-8 page splitter
+├── debug_is_processor.py     # Debug tool with detailed logging
+├── analyze_is_content.py     # Content analyzer for IS docs
+├── manual_is_split.py        # Manual splitting tool
+└── split_output/
+    └── complete/             # Output location for split PDFs
+        ├── J2401735_IS.pdf
+        ├── J2401735_IS_02.pdf
+        ├── J2401107_IS.pdf
+        └── J2401107_IS_02.pdf
+```
+
+## 🎯 Previous Accomplishments (2025-09-16)
 
 ### ✅ Critical OCR Pattern Recognition Fix
 - **Problem Solved:** Information Subpoena documents showing only 2 complete vs ~20 incomplete due to faulty file number detection

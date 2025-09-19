@@ -1,0 +1,176 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "patterns_tested": 5,
+      "files": {
+        "INCOMPLETE_40651_07_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_629384_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_701405_2025_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_710506_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_EF20251433_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 5,
+      "success_rate": 0.0
+    },
+    {
+      "round": 2,
+      "patterns_tested": 5,
+      "files": {
+        "INCOMPLETE_40651_07_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_629384_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_701405_2025_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_710506_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_EF20251433_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 5,
+      "success_rate": 0.0
+    },
+    {
+      "round": 3,
+      "patterns_tested": 5,
+      "files": {
+        "INCOMPLETE_40651_07_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_629384_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_701405_2025_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_710506_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_EF20251433_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 5,
+      "success_rate": 0.0
+    },
+    {
+      "round": 4,
+      "patterns_tested": 5,
+      "files": {
+        "INCOMPLETE_40651_07_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_629384_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_701405_2025_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_710506_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_EF20251433_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 5,
+      "success_rate": 0.0
+    },
+    {
+      "round": 5,
+      "patterns_tested": 4,
+      "files": {
+        "INCOMPLETE_40651_07_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_629384_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_701405_2025_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_710506_2024_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "INCOMPLETE_EF20251433_IS.pdf": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 5,
+      "success_rate": 0.0
+    }
+  ],
+  "successful_patterns": [],
+  "pattern_scores": {}
+}

@@ -1,0 +1,326 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "patterns_tested": 5,
+      "files": {
+        "L2501375_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501396_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501419_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501441_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501454_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501467_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501478_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501480_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501503_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501507_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2801413_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 11,
+      "success_rate": 0.0
+    },
+    {
+      "round": 2,
+      "patterns_tested": 5,
+      "files": {
+        "L2501375_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501396_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501419_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501441_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501454_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501467_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501478_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501480_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501503_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501507_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2801413_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 11,
+      "success_rate": 0.0
+    },
+    {
+      "round": 3,
+      "patterns_tested": 5,
+      "files": {
+        "L2501375_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501396_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501419_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501441_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501454_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501467_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501478_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501480_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501503_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501507_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2801413_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 11,
+      "success_rate": 0.0
+    },
+    {
+      "round": 4,
+      "patterns_tested": 5,
+      "files": {
+        "L2501375_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501396_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501419_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501441_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501454_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501467_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501478_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501480_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501503_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501507_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2801413_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 11,
+      "success_rate": 0.0
+    },
+    {
+      "round": 5,
+      "patterns_tested": 4,
+      "files": {
+        "L2501375_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501396_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501419_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501441_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501454_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501467_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501478_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501480_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501503_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2501507_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        },
+        "L2801413_LTD.PDF": {
+          "found": null,
+          "format": null,
+          "candidates": []
+        }
+      },
+      "success_count": 0,
+      "total_files": 11,
+      "success_rate": 0.0
+    }
+  ],
+  "successful_patterns": [],
+  "pattern_scores": {}
+}
