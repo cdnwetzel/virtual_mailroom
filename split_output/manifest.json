@@ -1,43 +1,83 @@
 {
-  "processing_date": "2025-09-19T15:19:01.117484",
-  "input_file": "temp_20250919_144944_NY_INFO_SUBS_9.19.2025.pdf",
-  "total_pages": 32,
-  "pages_per_document": 8,
-  "total_documents": 4,
-  "complete_documents": 4,
-  "incomplete_documents": 0,
+  "processed_at": "2025-09-23T13:46:52.443229",
+  "total_documents": 7,
   "documents": [
     {
-      "document": 1,
-      "filename": "J2401735_IS.pdf",
-      "file_number": "J2401735",
-      "pages": "1-8",
-      "page_count": 8,
-      "status": "complete"
+      "file_number": "UNKNOWN_001",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_001.pdf",
+      "pages": "1-1",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.432012"
     },
     {
-      "document": 2,
-      "filename": "J2401107_IS.pdf",
-      "file_number": "J2401107",
-      "pages": "9-16",
-      "page_count": 8,
-      "status": "complete"
+      "file_number": "UNKNOWN_002",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_002.pdf",
+      "pages": "2-2",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.433861"
     },
     {
-      "document": 3,
-      "filename": "J2401735_IS_02.pdf",
-      "file_number": "J2401735",
-      "pages": "17-24",
-      "page_count": 8,
-      "status": "complete"
+      "file_number": "UNKNOWN_003",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_003.pdf",
+      "pages": "3-3",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.435622"
     },
     {
-      "document": 4,
-      "filename": "J2401107_IS_02.pdf",
-      "file_number": "J2401107",
-      "pages": "25-32",
-      "page_count": 8,
-      "status": "complete"
+      "file_number": "UNKNOWN_004",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_004.pdf",
+      "pages": "4-4",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.437400"
+    },
+    {
+      "file_number": "UNKNOWN_005",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_005.pdf",
+      "pages": "5-5",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.439177"
+    },
+    {
+      "file_number": "UNKNOWN_006",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_006.pdf",
+      "pages": "6-6",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.440924"
+    },
+    {
+      "file_number": "UNKNOWN_007",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "REGF",
+      "jurisdiction": null,
+      "output_file": "REGF_UNKNOWN_007.pdf",
+      "pages": "7-7",
+      "page_count": 1,
+      "timestamp": "2025-09-23T13:46:52.442808"
     }
   ]
 }
