@@ -1,0 +1,17 @@
+{
+  "processed_at": "2025-09-23T13:42:22.649168",
+  "total_documents": 1,
+  "documents": [
+    {
+      "file_number": "UNKNOWN_001",
+      "debtor_name": null,
+      "address": null,
+      "document_type": "LTD",
+      "jurisdiction": null,
+      "output_file": "LTD_UNKNOWN_001.pdf",
+      "pages": "1-18",
+      "page_count": 18,
+      "timestamp": "2025-09-23T13:42:22.648785"
+    }
+  ]
+}
