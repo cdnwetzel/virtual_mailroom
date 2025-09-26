@@ -170,19 +170,34 @@ class PDFSplitter:
         page2_text = pages_text[1]  # Page 2 (0-indexed)
 
         # Look for file number after "File No."
+        # Handle various line break scenarios
         patterns = [
             r'File\s*No[.:]\s*([A-Z0-9]{6,8})',
             r'Attorney.*\n.*File\s*No[.:]\s*([A-Z0-9]{6,8})',
+            r'Attorney\s+for\s+J[^\n]*\n\s*File\s*No[.:]\s*([A-Z0-9]{6,8})',  # Attorney for J... on one line, File No on next
+            r'Attorney\s+for\s+[^\n]*\n\s*File\s*No[.:]\s*([A-Z0-9]{6,8})',  # Attorney for ... on one line
+            r'File\s*No[.:]\s*([A-Z0-9]{6,8})\s*\n\s*Creditor',  # File No above Creditor
         ]
 
         for pattern in patterns:
             match = re.search(pattern, page2_text, re.IGNORECASE | re.MULTILINE | re.DOTALL)
             if match:
                 file_number = match.group(1).strip().upper()
-                # Apply OCR correction for first character
+
+                # Apply OCR corrections
+                # Fix first character if it's '1' and should be 'L'
                 if len(file_number) == 8 and file_number[0] == '1':
                     if file_number[1:].isdigit():
                         file_number = 'L' + file_number[1:]
+
+                # Fix YL -> Y1 (second char should be 1 not L)
+                if file_number.startswith('YL'):
+                    file_number = 'Y1' + file_number[2:]
+
+                # Add missing trailing 0 for truncated numbers like L240029
+                if re.match(r'^L\d{6}$', file_number):  # L + 6 digits
+                    file_number = file_number + '0'
+
                 return file_number
         return None
 

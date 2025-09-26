@@ -47,23 +47,24 @@ class ISPostProcessor:
                     page2_text = pdf.pages[1].extract_text() or ''
 
                     # Check for "Attorney for Judgment Creditor" (with OCR variations)
-                    # Allow for spaces within words due to OCR issues
+                    # Allow for spaces within words and line breaks
                     attorney_patterns = [
                         r'Attorney\s+for\s+Judgment\s+Creditor',
                         r'Attorney\s+for\s+Ju\s*dgment\s+Creditor',  # Space in Judgment
-                        r'Attorney.*Creditor',  # More flexible
+                        r'Attorney\s+for\s+J',  # Minimum pattern - just "Attorney for J"
+                        r'Attorney.*Creditor',  # Flexible across lines
                         r'Attorn.*for.*Creditor'  # Even more flexible for bad OCR
                     ]
 
                     found_attorney = False
                     for pattern in attorney_patterns:
-                        if re.search(pattern, page2_text, re.IGNORECASE):
+                        if re.search(pattern, page2_text, re.IGNORECASE | re.DOTALL):
                             validation['has_attorney_pattern'] = True
                             found_attorney = True
                             break
 
                     if not found_attorney:
-                        validation['issues'].append("Page 2 missing 'Attorney for Judgment Creditor' pattern")
+                        validation['issues'].append("Page 2 missing 'Attorney for J...' pattern")
 
                     # Check for "File No."
                     file_no_match = re.search(r'File\s*No[.:]\s*([A-Z0-9]{2,8})', page2_text, re.IGNORECASE)
