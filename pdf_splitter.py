@@ -157,7 +157,36 @@ class PDFSplitter:
         
         return boundaries
     
-    def split_pdf(self, input_pdf_path: str, doc_type: Optional[str] = None, 
+    def extract_is_file_number(self, pages_text: List[str]) -> Optional[str]:
+        """Extract IS file number from page 2 specifically
+
+        IS documents have format on page 2:
+        Attorney for Judgment Creditor
+        File No. L1800998
+        """
+        if len(pages_text) < 2:
+            return None
+
+        page2_text = pages_text[1]  # Page 2 (0-indexed)
+
+        # Look for file number after "File No."
+        patterns = [
+            r'File\s*No[.:]\s*([A-Z0-9]{6,8})',
+            r'Attorney.*\n.*File\s*No[.:]\s*([A-Z0-9]{6,8})',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, page2_text, re.IGNORECASE | re.MULTILINE | re.DOTALL)
+            if match:
+                file_number = match.group(1).strip().upper()
+                # Apply OCR correction for first character
+                if len(file_number) == 8 and file_number[0] == '1':
+                    if file_number[1:].isdigit():
+                        file_number = 'L' + file_number[1:]
+                return file_number
+        return None
+
+    def split_pdf(self, input_pdf_path: str, doc_type: Optional[str] = None,
                   pages_per_doc: Optional[int] = None, auto_detect: bool = True):
         """Split PDF into individual documents"""
         input_path = Path(input_pdf_path)
@@ -179,19 +208,35 @@ class PDFSplitter:
                 text = page.extract_text() or ""
                 pages_text.append(text)
         
-        if auto_detect and not pages_per_doc:
+        # Special handling for IS documents - always use fixed 7-page boundaries
+        if doc_type == "IS":
+            pages_per_doc = 7
+            boundaries = [(i, min(i + pages_per_doc - 1, total_pages - 1))
+                         for i in range(0, total_pages, pages_per_doc)]
+            logger.info(f"IS document: using fixed {pages_per_doc}-page boundaries, found {len(boundaries)} document(s)")
+        elif auto_detect and not pages_per_doc:
             boundaries = self.find_document_boundaries(pages_text)
             logger.info(f"Auto-detected {len(boundaries)} document(s)")
         else:
             pages_per_doc = pages_per_doc or 1
-            boundaries = [(i, min(i + pages_per_doc - 1, total_pages - 1)) 
+            boundaries = [(i, min(i + pages_per_doc - 1, total_pages - 1))
                          for i in range(0, total_pages, pages_per_doc)]
         
         for doc_idx, (start_page, end_page) in enumerate(boundaries):
             first_page_text = pages_text[start_page] if start_page < len(pages_text) else ""
             all_pages_text = " ".join(pages_text[start_page:end_page+1])
-            
-            file_number = self.extract_file_number(first_page_text)
+
+            # For IS documents, extract file number from page 2
+            if doc_type == "IS":
+                # Get pages for this document boundary
+                doc_pages = pages_text[start_page:end_page+1]
+                file_number = self.extract_is_file_number(doc_pages)
+                # If not found on page 2, try standard extraction on first page
+                if not file_number:
+                    file_number = self.extract_file_number(first_page_text)
+            else:
+                file_number = self.extract_file_number(first_page_text)
+
             debtor_name = self.extract_debtor_name(first_page_text)
             address = self.extract_address(first_page_text)
             
