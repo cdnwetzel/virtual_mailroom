@@ -647,32 +647,42 @@ class InfoSubProcessor:
         logger.info(f"Manifest saved: {manifest_path}")
         return str(manifest_path)
 
-    def create_zip_archive(self, archive_name: str = None) -> str:
+    def create_zip_archive(self, results=None, archive_name: str = None):
         """Create a ZIP archive of all processed documents
 
         Args:
+            results: Results dictionary (for compatibility with plugin)
             archive_name: Name for the archive (optional)
 
         Returns:
-            Path to the created archive
+            Bytes of the ZIP archive for download
         """
         import zipfile
         import json
+        import io
 
-        if not archive_name:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            archive_name = f"IS_documents_{timestamp}.zip"
+        # Create in-memory ZIP file
+        zip_buffer = io.BytesIO()
 
-        archive_path = self.output_dir / archive_name
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # Use results if provided, otherwise use self.processed_documents
+            docs_to_archive = results.get('documents', self.processed_documents) if results else self.processed_documents
 
-        with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             # Add all processed PDFs
-            for doc in self.processed_documents:
-                pdf_path = self.output_dir / doc['filename']
-                if pdf_path.exists():
-                    # Store with relative path to preserve structure
-                    arcname = doc['filename']
-                    zipf.write(pdf_path, arcname)
+            for doc in docs_to_archive:
+                # Handle different document formats
+                if isinstance(doc, dict):
+                    if 'filename' in doc:
+                        pdf_path = self.output_dir / doc['filename']
+                    elif 'path' in doc:
+                        pdf_path = Path(doc['path'])
+                    else:
+                        continue
+
+                    if pdf_path.exists():
+                        # Store with just the filename, no path
+                        arcname = pdf_path.name
+                        zipf.write(pdf_path, arcname)
 
             # Add incomplete documents if they exist
             incomplete_dir = self.output_dir / "incomplete"
@@ -691,8 +701,9 @@ class InfoSubProcessor:
                 if manifest_path.exists():
                     zipf.write(manifest_path, "infosub_manifest.json")
 
-        logger.info(f"Archive created: {archive_path}")
-        return str(archive_path)
+        # Return the ZIP file as bytes
+        zip_buffer.seek(0)
+        return zip_buffer.read()
 
     def print_summary(self):
         """Print processing summary"""
