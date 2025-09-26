@@ -158,47 +158,108 @@ class PDFSplitter:
         return boundaries
     
     def extract_is_file_number(self, pages_text: List[str]) -> Optional[str]:
-        """Extract IS file number from page 2 specifically
+        """Extract IS file number from multiple sources with validation
 
-        IS documents have format on page 2:
-        Attorney for Judgment Creditor
-        File No. L1800998
+        IS documents typically have file numbers in:
+        1. Page 2: "File No. L1800998" (may have OCR issues)
+        2. Page 3: "Account Number: L1800998" (more reliable)
+
+        We check both and use validation to get the correct number.
         """
-        if len(pages_text) < 2:
-            return None
+        file_numbers = []
 
-        page2_text = pages_text[1]  # Page 2 (0-indexed)
+        # Check Page 2 for File No.
+        if len(pages_text) > 1:
+            page2_text = pages_text[1]  # Page 2 (0-indexed)
 
-        # Look for file number after "File No."
-        # Handle various line break scenarios
-        patterns = [
-            r'File\s*No[.:]\s*([A-Z0-9]{6,8})',
-            r'Attorney.*\n.*File\s*No[.:]\s*([A-Z0-9]{6,8})',
-            r'Attorney\s+for\s+J[^\n]*\n\s*File\s*No[.:]\s*([A-Z0-9]{6,8})',  # Attorney for J... on one line, File No on next
-            r'Attorney\s+for\s+[^\n]*\n\s*File\s*No[.:]\s*([A-Z0-9]{6,8})',  # Attorney for ... on one line
-            r'File\s*No[.:]\s*([A-Z0-9]{6,8})\s*\n\s*Creditor',  # File No above Creditor
-        ]
+            # Look for file number after "File No."
+            patterns = [
+                r'File\s*No[.:]\s*([A-Z0-9]{2,8})',  # Allow partial numbers (L2)
+                r'Attorney.*\n.*File\s*No[.:]\s*([A-Z0-9]{2,8})',
+                r'Attorney\s+for\s+J[^\n]*\n\s*File\s*No[.:]\s*([A-Z0-9]{2,8})',
+                r'Attorney\s+for\s+[^\n]*\n\s*File\s*No[.:]\s*([A-Z0-9]{2,8})',
+                r'File\s*No[.:]\s*([A-Z0-9]{2,8})\s*\n\s*Creditor',
+            ]
 
-        for pattern in patterns:
-            match = re.search(pattern, page2_text, re.IGNORECASE | re.MULTILINE | re.DOTALL)
-            if match:
-                file_number = match.group(1).strip().upper()
+            for pattern in patterns:
+                match = re.search(pattern, page2_text, re.IGNORECASE | re.MULTILINE | re.DOTALL)
+                if match:
+                    file_number = match.group(1).strip().upper()
+                    if len(file_number) >= 2:  # Accept even partial numbers
+                        file_numbers.append(('page2', file_number))
+                        break
 
-                # Apply OCR corrections
-                # Fix first character if it's '1' and should be 'L'
-                if len(file_number) == 8 and file_number[0] == '1':
-                    if file_number[1:].isdigit():
-                        file_number = 'L' + file_number[1:]
+        # Check Page 3 for Account Number (more reliable)
+        if len(pages_text) > 2:
+            page3_text = pages_text[2]  # Page 3 (0-indexed)
 
-                # Fix YL -> Y1 (second char should be 1 not L)
-                if file_number.startswith('YL'):
-                    file_number = 'Y1' + file_number[2:]
+            # Look for Account Number
+            account_patterns = [
+                r'Account\s*Number[.:]\s*([A-Z0-9]{6,8})',
+                r'Account\s*#[.:]\s*([A-Z0-9]{6,8})',
+                r'Acct\s*Number[.:]\s*([A-Z0-9]{6,8})',
+                r'Acct\s*No[.:]\s*([A-Z0-9]{6,8})',
+            ]
 
-                # Add missing trailing 0 for truncated numbers like L240029
-                if re.match(r'^L\d{6}$', file_number):  # L + 6 digits
-                    file_number = file_number + '0'
+            for pattern in account_patterns:
+                match = re.search(pattern, page3_text, re.IGNORECASE | re.MULTILINE)
+                if match:
+                    file_number = match.group(1).strip().upper()
+                    if len(file_number) >= 6:  # Account numbers should be complete
+                        file_numbers.append(('page3', file_number))
+                        break
 
-                return file_number
+        # Check other pages for additional validation
+        for page_num, page_text in enumerate(pages_text[:5]):  # Check first 5 pages
+            if page_num in [1, 2]:  # Skip already checked pages
+                continue
+
+            # Look for any file/account number patterns
+            extra_patterns = [
+                r'Our\s*File\s*Number[.:]\s*([A-Z0-9]{6,8})',
+                r'File\s*#[.:]\s*([A-Z0-9]{6,8})',
+                r'Matter\s*Number[.:]\s*([A-Z0-9]{6,8})',
+                r'Case\s*Number[.:]\s*([A-Z0-9]{6,8})',
+            ]
+
+            for pattern in extra_patterns:
+                match = re.search(pattern, page_text, re.IGNORECASE | re.MULTILINE)
+                if match:
+                    file_number = match.group(1).strip().upper()
+                    if len(file_number) >= 6:
+                        file_numbers.append((f'page{page_num+1}', file_number))
+                        break
+
+        # Process and select best file number
+        if file_numbers:
+            # Prefer page 3 Account Number (most reliable)
+            page3_numbers = [num for source, num in file_numbers if source == 'page3']
+            if page3_numbers:
+                file_number = page3_numbers[0]
+            else:
+                # Use page 2 or other sources
+                file_number = file_numbers[0][1]
+
+            # Apply OCR corrections
+            # Fix first character if it's '1' and should be 'L'
+            if len(file_number) == 8 and file_number[0] == '1':
+                if file_number[1:].isdigit():
+                    file_number = 'L' + file_number[1:]
+
+            # Fix YL -> Y1 (second char should be 1 not L)
+            if file_number.startswith('YL'):
+                file_number = 'Y1' + file_number[2:]
+
+            # Add missing trailing 0 for truncated numbers like L240029
+            if re.match(r'^L\d{6}$', file_number):  # L + 6 digits
+                file_number = file_number + '0'
+
+            # Handle truncated numbers from page 2 if we have better info from page 3
+            if len(file_number) < 6 and page3_numbers:
+                file_number = page3_numbers[0]
+
+            return file_number
+
         return None
 
     def split_pdf(self, input_pdf_path: str, doc_type: Optional[str] = None,
