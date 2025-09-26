@@ -29,12 +29,13 @@ class PDFSplitter:
         self.processed_files = []
         
         self.file_patterns = [
-            r'Our File Number:\s*([A-Z]{0,2}\d{1,8})',
-            r'File Number:\s*([A-Z]{0,2}\d{1,8})',
-            r'File #:\s*([A-Z]{0,2}\d{1,8})',
-            r'Case Number:\s*([A-Z]{0,2}\d{1,8})',
-            r'Case No[.:]?\s*([A-Z]{0,2}\d{1,8})',
-            r'Matter #:\s*([A-Z]{0,2}\d{1,8})'
+            r'Our File Number:\s*([A-Z0-9]{6,8})',  # Allow any mix of letters/digits
+            r'File Number:\s*([A-Z0-9]{6,8})',
+            r'File No[.:]?\s*([A-Z0-9]{6,8})',  # Added "File No." pattern
+            r'File #:\s*([A-Z0-9]{6,8})',
+            r'Case Number:\s*([A-Z0-9]{6,8})',
+            r'Case No[.:]?\s*([A-Z0-9]{6,8})',
+            r'Matter #:\s*([A-Z0-9]{6,8})'
         ]
         
         self.debtor_patterns = [
@@ -56,6 +57,14 @@ class PDFSplitter:
             if match:
                 file_number = match.group(1).strip().upper()
                 file_number = re.sub(r'[^A-Z0-9]', '', file_number)
+
+                # Apply smart OCR correction: if starts with "1" and is 8 chars,
+                # likely should be "L" (common OCR error)
+                if len(file_number) == 8 and file_number[0] == '1':
+                    # Only correct if rest are digits (L + 7 digits pattern)
+                    if file_number[1:].isdigit():
+                        file_number = 'L' + file_number[1:]
+
                 if len(file_number) <= 8:
                     return file_number
         return None
@@ -299,7 +308,7 @@ Examples:
     parser.add_argument('-o', '--output', default='output', 
                        help='Output directory (default: output)')
     parser.add_argument('-t', '--type', 
-                       choices=['REGF', 'AFF', 'ICD', 'NOTICE', 'SUMMONS', 'MOTION'],
+                       choices=['LTD', 'IS', 'PI'],
                        help='Force document type')
     parser.add_argument('-p', '--pages', type=int,
                        help='Pages per document (1 for NJ, 2 for NY)')

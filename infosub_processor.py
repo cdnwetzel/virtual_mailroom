@@ -632,7 +632,7 @@ class InfoSubProcessor:
     def generate_manifest(self) -> str:
         """Generate processing manifest"""
         manifest_path = self.output_dir / "infosub_manifest.json"
-        
+
         import json
         manifest = {
             'processing_date': datetime.now().isoformat(),
@@ -640,13 +640,60 @@ class InfoSubProcessor:
             'total_documents': len(self.processed_documents),
             'documents': self.processed_documents
         }
-        
+
         with open(manifest_path, 'w') as f:
             json.dump(manifest, f, indent=2)
-        
+
         logger.info(f"Manifest saved: {manifest_path}")
         return str(manifest_path)
-    
+
+    def create_zip_archive(self, archive_name: str = None) -> str:
+        """Create a ZIP archive of all processed documents
+
+        Args:
+            archive_name: Name for the archive (optional)
+
+        Returns:
+            Path to the created archive
+        """
+        import zipfile
+        import json
+
+        if not archive_name:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            archive_name = f"IS_documents_{timestamp}.zip"
+
+        archive_path = self.output_dir / archive_name
+
+        with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # Add all processed PDFs
+            for doc in self.processed_documents:
+                pdf_path = self.output_dir / doc['filename']
+                if pdf_path.exists():
+                    # Store with relative path to preserve structure
+                    arcname = doc['filename']
+                    zipf.write(pdf_path, arcname)
+
+            # Add incomplete documents if they exist
+            incomplete_dir = self.output_dir / "incomplete"
+            if incomplete_dir.exists():
+                for pdf_file in incomplete_dir.glob("*.pdf"):
+                    arcname = f"incomplete/{pdf_file.name}"
+                    zipf.write(pdf_file, arcname)
+
+            # Add manifest
+            manifest_path = self.output_dir / "infosub_manifest.json"
+            if manifest_path.exists():
+                zipf.write(manifest_path, "infosub_manifest.json")
+            else:
+                # Create manifest if it doesn't exist
+                self.generate_manifest()
+                if manifest_path.exists():
+                    zipf.write(manifest_path, "infosub_manifest.json")
+
+        logger.info(f"Archive created: {archive_path}")
+        return str(archive_path)
+
     def print_summary(self):
         """Print processing summary"""
         print("\n" + "="*70)

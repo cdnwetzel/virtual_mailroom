@@ -55,9 +55,9 @@ class FastOCRExtractor:
             # Run OCR on cropped region
             text = pytesseract.image_to_string(cropped, config=self.fast_config)
 
-            # Clean common OCR errors
-            text = text.replace('|', '1').replace('l', '1').replace('I', '1')
-            text = text.replace('O', '0').replace('o', '0')
+            # Clean common OCR errors (but keep original for fallback)
+            cleaned_text = text.replace('|', '1').replace('l', '1').replace('I', '1')
+            cleaned_text = cleaned_text.replace('O', '0').replace('o', '0')
 
             # Look for file number patterns
             # Search near keywords first
@@ -69,14 +69,25 @@ class FastOCRExtractor:
                 r'\b(\d{8})\b',
             ]
 
-            for pattern in patterns:
-                matches = re.findall(pattern, text.upper(), re.MULTILINE)
-                for match in matches:
-                    cleaned = re.sub(r'[^A-Z0-9]', '', match)
-                    # Validate against our patterns
-                    for valid_pattern in self.valid_patterns:
-                        if valid_pattern.match(cleaned):
-                            return cleaned
+            # Try both cleaned and original text
+            for text_version in [cleaned_text.upper(), text.upper()]:
+                for pattern in patterns:
+                    matches = re.findall(pattern, text_version, re.MULTILINE)
+                    for match in matches:
+                        cleaned = re.sub(r'[^A-Z0-9]', '', match)
+
+                        # Apply smart OCR corrections for file numbers
+                        # Only fix first character if it's "1" and should be "L"
+                        if len(cleaned) == 8 and cleaned[0] == '1':
+                            # Check if it matches the pattern with L instead
+                            corrected = 'L' + cleaned[1:]
+                            if re.match(r'^[A-Z]\d{7}$', corrected):
+                                cleaned = corrected
+
+                        # Validate against our patterns
+                        for valid_pattern in self.valid_patterns:
+                            if valid_pattern.match(cleaned):
+                                return cleaned
 
         except Exception as e:
             logger.debug(f"Error processing image: {e}")
